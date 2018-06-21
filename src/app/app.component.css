@@ -1,0 +1,33 @@
+/*
+    @Made By Yoav Saroya (304835887) & Amit Shmuel (305213621)
+ */
+
+canvas {
+    background: gray;
+    display: block;
+}
+
+button[disabled] {
+    cursor: not-allowed;
+}
+
+.form-control {
+    width: unset !important;
+    padding: unset !important;
+    display: inline-block;
+}
+
+.form-check-input {
+    height: 17px;
+    width: 17px;
+}
+
+.form-check-label > span {
+    position: relative;
+    top: -4px;
+}
+
+.form-check-label {
+    position: relative;
+    top: 5px;
+}

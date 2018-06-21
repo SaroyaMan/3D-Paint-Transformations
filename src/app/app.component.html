@@ -1,0 +1,95 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1>Graphics H.W - 3 <small class="text-secondary">Made By Yoav Saroya (304835887) & Amit Shmuel (305213621)</small></h1>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-8">
+            <strong>Projection Type:</strong>
+
+            <div class="form-check form-check-inline">
+                <label class="form-check-label">
+                    <input class="form-check-input" type="radio" name="projectionType" [value]="1" (change)="changeDrawOption()" [(ngModel)]="currentDrawingOption">
+                    <span>Parallel</span>
+                </label>
+            </div>
+            <div class="form-check form-check-inline">
+                <label class="form-check-label">
+                    <input class="form-check-input" type="radio" name="projectionType" [value]="2" (change)="changeDrawOption()" [(ngModel)]="currentDrawingOption">
+                    <span>Oblique</span>
+                </label>
+            </div>
+            <div class="form-check form-check-inline disabled">
+                <label class="form-check-label">
+                    <input class="form-check-input" type="radio" name="projectionType" [value]="3" (change)="changeDrawOption()" [(ngModel)]="currentDrawingOption">
+                    <span>Perspective</span>
+                </label>
+            </div>
+
+
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-8">
+
+            <div class="d-inline">
+                <label class="">Angle: <input type="number" min="-360" max="360" class="form-control" [(ngModel)]="currentAngle"></label>
+
+            </div>
+
+            <div class="form-check form-check-inline">
+                <label class="form-check-label">
+                    <input class="form-check-input" type="radio" name="rotationPivot" [value]="1" [(ngModel)]="currentAxis">
+                    <span>X</span>
+                </label>
+            </div>
+            <div class="form-check form-check-inline">
+                <label class="form-check-label">
+                    <input class="form-check-input" type="radio" name="rotationPivot" [value]="2" [(ngModel)]="currentAxis">
+                    <span>Y</span>
+                </label>
+            </div>
+            <div class="form-check form-check-inline disabled">
+                <label class="form-check-label">
+                    <input class="form-check-input" type="radio" name="rotationPivot" [value]="3" [(ngModel)]="currentAxis">
+                    <span>Z</span>
+                </label>
+            </div>
+
+            <button class="btn btn-outline-dark btn-sm" ngbTooltip="Rotate - click the button to rotate the graphic" [placement]="'bottom'"
+                    (click)="onClickRotate()">
+                <fa name="refresh"></fa> Rotate
+            </button>
+
+            <div class="d-inline m-lg-5">
+                <label>Scale:
+                    <input class="form-control" type="number" min="0.1" step="0.2" max="10" [(ngModel)]="scaleValue">
+                </label>
+                <button class="btn btn-outline-dark btn-sm" ngbTooltip="Scale - 2 clicks on the canvas, scaling factor determined by the delta of the clicks" [placement]="'bottom'"
+                        (click)="onClickScale()">
+                    <fa name="arrows-alt"></fa> Scale
+                </button>
+            </div>
+
+            <div class="d-inline m-lg-5">
+                <button class="btn btn-outline-warning" (click)="reload()"
+                        ngbTooltip="Reload the graphic from the file"
+                        [placement]="'bottom'">Reload</button>
+                <button class="btn btn-outline-danger" (click)="clearCanvas()"
+                        ngbTooltip="Clear the graphic from the canvas"
+                        [placement]="'bottom'">Clear</button>
+            </div>
+
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-12">
+            <canvas height="550" width="900" #canvas></canvas>
+        </div>
+    </div>
+    <br>
+</div>
