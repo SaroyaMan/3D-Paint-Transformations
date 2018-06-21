@@ -3,8 +3,6 @@
  */
 
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-
-import * as math from 'mathjs';
 import {Data} from './models/data.model';
 
 enum DrawingOption {
@@ -29,26 +27,23 @@ export class AppComponent implements OnInit {
 
     @ViewChild('canvas') canvas: ElementRef;
     context: CanvasRenderingContext2D;
-    widthCenter;
-    heightCenter;
 
-    middle = { x:-1, y:-1 };
-    range = { maxX:0, maxY:0, minX:900, minY:550 };
+    middle:any = { x:-1, y:-1 };
+    range:any = { maxX:0, maxY:0, minX:1000, minY:1000 };
 
-    scaleValue = 1;
+    readonly Z_DEPTH:number = 1500;
+    readonly OBLIQUE_ANGLE:number = 45 / 180 * Math.PI;
 
-    readonly Z_DEPTH = 1500;
-    readonly OBLIQUE_ANGLE = 45 / 180 * Math.PI;
+    readonly STROKE_COLOR:string = '#000';
 
-    readonly COLOR             = '#ccc';
-    readonly STROKE_COLOR      = '#000';
-
-    vertices = [];
-    polygons = [];
+    vertices:any = [];
+    polygons:any = [];
 
     currentDrawingOption:DrawingOption = DrawingOption.Perspective;
     currentAxis:Axis = Axis.X;
-    currentAngle:number = 1;
+    currentAngle:number = 10;
+    scaleValue:number = 1.1;
+
 
     constructor() {}
 
@@ -57,55 +52,115 @@ export class AppComponent implements OnInit {
         // Load the canvas context
         this.context = (<HTMLCanvasElement>this.canvas.nativeElement).getContext('2d');
 
-        this.widthCenter = this.canvas.nativeElement.width / 2;
-        this.heightCenter = this.canvas.nativeElement.height / 4;
-
         // Draw the shapes on canvas
         this.reload();
     }
 
 
     // Clear canvas
-    clearCanvas() {
+    public clearCanvas() {
         this.context.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
     }
 
     // Clear canvas and reload the file
-    reload() {
+    public reload() {
         this.clearCanvas();
-        this.drawShapes();
+        this.initialize();
     }
 
-    changeDrawOption() {
-        console.log(this.currentDrawingOption);
+    public changeDrawOption() {
         this.clearCanvas();
         if (this.vertices.length > 0 && this.polygons.length > 0)
             this.draw();
     }
 
-    // Draw all shapes on canvas (Graphic Console)
-    private drawShapes() {
+    public onClickRotate() {
+
+        let degree = this.currentAngle;
+
+        // Normalize the degree
+        degree %= 360;
+
+        // Convert degree to radiant
+        degree = degree / 180 * Math.PI;
+
+        for( let val of Object.values(this.vertices)) {
+
+            let x = val[0] - this.middle.x,
+                y = val[1] - this.middle.y,
+                z = val[2];
+
+            if (this.currentAxis === Axis.X) {
+
+                val[1] = (y * Math.cos(degree) - z * Math.sin(degree)) + this.middle.y;
+                val[2] = (y * Math.sin(degree) + z * Math.cos(degree));
+
+            }
+            else if (this.currentAxis === Axis.Y) {
+
+                val[0] = (x * Math.cos(degree) - z * Math.sin(degree)) + this.middle.x;
+                val[2] = (x * Math.sin(degree) + z * Math.cos(degree));
+
+            }
+            else if(this.currentAxis === Axis.Z) {
+
+                val[0] = (x * Math.cos(degree) - y * Math.sin(degree)) + this.middle.x;
+                val[1] = (x * Math.sin(degree) + y * Math.cos(degree)) + this.middle.y;
+
+            }
+        }
+        this.clearCanvas();
+        this.draw();
+    }
+
+    public onClickScale() {
+
+        if(this.scaleValue > 10 || this.scaleValue < 0.1){
+            alert("Invalid Scale Value");
+        }
+        else {
+            for(let vertice of this.vertices) {
+                let x = vertice[0] - this.middle.x,
+                    y = vertice[1] - this.middle.y,
+                    z = vertice[2];
+
+                vertice[0] = (this.scaleValue * x) + this.middle.x;
+                vertice[1] = (this.scaleValue * y) + this.middle.y;
+                vertice[2] = this.scaleValue * z;
+            }
+            this.clearCanvas();
+            this.draw();
+        }
+    }
+
+    private initialize() {
 
         if(Data.polygons && Data.vertices) {
             this.polygons = Data.polygons.map(x => Object.assign({}, x));
             this.vertices = Data.vertices.map(x => Object.assign({}, x));
-            this.middleCalc();
+
+            for(let polygon of this.polygons) {
+                polygon.color = AppComponent.generateRandomColor();
+            }
+
+            this.calculateCenter();
             this.clearCanvas();
             this.draw();
         }
         else {
-            alert("File structure doesn't fit. make sure it contains polygons and vertices properties");
+            alert("Error in Read the Data");
         }
 
     }
 
 
-    //calculates all the end points of the portrait to 'range' object and calculates the center coordinate of the portrait
-    private middleCalc() {
+    // Calculates all the end points of the portrait to 'range' object
+    // Calculates the center coordinate of the portrait
+    private calculateCenter() {
         this.range.maxX = 0;
         this.range.maxY = 0;
-        this.range.minX = 900;
-        this.range.minY = 550;
+        this.range.minX = 1000;
+        this.range.minY = 1000;
 
         for(let vert of this.vertices){
             let x = vert[0];
@@ -116,26 +171,26 @@ export class AppComponent implements OnInit {
             if (y < this.range.minY) this.range.minY = y;
         }
 
-        //calculating middle of the portrait
+        // Calculating middle of the portrait
         this.middle.x = (this.range.maxX + this.range.minX) / 2;
         this.middle.y = (this.range.maxY + this.range.minY) / 2;
     }
 
 
-    // sorts the polygons collection by thair depth
+    // sorts the polygons by their depth
     private depthSorting() {
-        this.polygons.sort( (a, b) => {
+        this.polygons.sort( (polygonA, polygonB) => {
             let aDepth = 0, bDepth = 0;
-            for (let i of a) aDepth += this.vertices[i][2];
-            for (let j of b) bDepth += this.vertices[j][2];
-            return ( aDepth / a.length ) - ( bDepth / b.length );
+            for (let i of polygonA.verticeIndexes) aDepth += this.vertices[i][2];
+            for (let j of polygonB.verticeIndexes) bDepth += this.vertices[j][2];
+            return ( aDepth / polygonA.verticeIndexes.length ) - ( bDepth / polygonB.verticeIndexes.length );
         });
     }
 
-    // helping calculate the normal variable by the diff of polygons
-    private getNormalVer(vera, verb) {
+    // Extra calculations for calculating the normal
+    private calculateNormalVertice(vera, verb) {
         let vp = {x:-1,y:-1,z:-1};
-        // difference between polygons
+        // Calculate difference between polygons
         vp.x = this.vertices[verb][0] - this.vertices[vera][0];
         vp.y = this.vertices[verb][1] - this.vertices[vera][1];
         vp.z = this.vertices[verb][2] - this.vertices[vera][2];
@@ -143,11 +198,11 @@ export class AppComponent implements OnInit {
     }
 
     // calculates normal by a given polygon parameter
-    private calcNormal(polygon) {
+    private calculateNormal(polygon) {
         //now we need three vertices from each polygon in order to calculate each shape's Normal
-        let vecA = this.getNormalVer(polygon[0],polygon[1]),
-            vecB = this.getNormalVer(polygon[0],polygon[2]),
-            vecC = this.getNormalVer(polygon[1],polygon[2]);
+        let vecA = this.calculateNormalVertice(polygon.verticeIndexes[0],polygon.verticeIndexes[1]),
+            vecB = this.calculateNormalVertice(polygon.verticeIndexes[0],polygon.verticeIndexes[2]),
+            vecC = this.calculateNormalVertice(polygon.verticeIndexes[1],polygon.verticeIndexes[2]);
 
         // product a with b into normal1
         let normal1 = {x:-1,y:-1,z:-1};
@@ -168,72 +223,71 @@ export class AppComponent implements OnInit {
         normal3.z = ( normal1.x * normal2.y - ( normal1.y * normal2.x ));
 
         // calculates normal absolute size
-        let firstArgument = Math.pow(normal3.x,2);
-        let secondArgument = Math.pow(normal3.y,2);
-        let thirdArugment = Math.pow(normal3.z,2);
+        let xPow = Math.pow(normal3.x,2);
+        let yPow = Math.pow(normal3.y,2);
+        let zPow = Math.pow(normal3.z,2);
 
-        // let normalSize = Math.sqrt( firstArgument , secondArgument , thirdArugment);
-        let normalSize = Math.sqrt(firstArgument);
-        // console.log(`normalSize -> ${normalSize}`);
-
-        return normalSize;
+        return Math.sqrt(xPow + yPow + zPow);
     }
 
-    // Drawing the 3D picture - ( Entry function )
+    // Drawing the polygons
     private draw() {
 
-        //ordering the shapes by depth
+        // Sorting the shapes by depth
         this.depthSorting();
 
-        //drawing each polygon
+        // Running through Drawing polygon
         for(let polygon of this.polygons) {
 
-            let x1, y1, x2, y2, verticeA, verticeB;
+            let x1, y1, x2, y2, firstVertice, secondVertice;
             this.context.beginPath();
 
-            //the first vertice of the selected polygon
-            verticeA = this.vertices[polygon[0]];
+            firstVertice = this.vertices[polygon.verticeIndexes[0]];
 
-            // check the picked drawing option
             if (this.currentDrawingOption === DrawingOption.Perspective) {
 
-                x1 = verticeA[0] * (1/(1 + verticeA[2] / this.Z_DEPTH));
-                y1 = verticeA[1] * (1/(1 + verticeA[2] / this.Z_DEPTH));
+                x1 = firstVertice[0] * (1/(1 + firstVertice[2] / this.Z_DEPTH));
+                y1 = firstVertice[1] * (1/(1 + firstVertice[2] / this.Z_DEPTH));
 
             }
             else if (this.currentDrawingOption === DrawingOption.Parallel) {
 
                 // calculate the polygon normal
-                if (this.calcNormal(polygon) < 0) continue;
+                if (this.calculateNormal(polygon) < 0) continue;
 
-                x1 = verticeA[0];
-                y1 = verticeA[1];
+                x1 = firstVertice[0];
+                y1 = firstVertice[1];
 
             }
-            else { // drawing oblique
+            else if(this.currentDrawingOption === DrawingOption.Oblique) {
 
                 // check the polygon normal
-                if (this.calcNormal(polygon) < 0) continue;
+                if (this.calculateNormal(polygon) < 0) continue;
 
-                x1 = verticeA[0] + verticeA[2] * Math.cos(this.OBLIQUE_ANGLE);
-                y1 = verticeA[1] + verticeA[2] * Math.sin(this.OBLIQUE_ANGLE);
+                x1 = firstVertice[0] + firstVertice[2] * Math.cos(this.OBLIQUE_ANGLE);
+                y1 = firstVertice[1] + firstVertice[2] * Math.sin(this.OBLIQUE_ANGLE);
+            }
+            else {
+                alert("Invalid Drawing Option Value");
             }
 
-            //stating point of the polygon
+            // Move the paint brush to starting point of the polygon
             this.context.moveTo(x1,y1);
 
-            // connect all points of the polygon
-            for (let v of Object.values(polygon)) {
-                verticeB = this.vertices[v];
+            // Calculate polygon points in order to prepare for drawing
+            for (let v of polygon.verticeIndexes) {
+                secondVertice = this.vertices[v];
                 if (this.currentDrawingOption === DrawingOption.Perspective) {
-                    x2 = verticeB[0] * (1/(1 + verticeB[2] / this.Z_DEPTH));
-                    y2 = verticeB[1] * (1/(1 + verticeB[2] / this.Z_DEPTH));
-                } else if (this.currentDrawingOption === DrawingOption.Parallel) {
-                    x2 = verticeB[0];
-                    y2 = verticeB[1];
-                } else {//drawing parallel oblique
-                    x2 = verticeB[0] + verticeB[2] * Math.cos(this.OBLIQUE_ANGLE);
-                    y2 = verticeB[1] + verticeB[2] * Math.sin(this.OBLIQUE_ANGLE);
+                    x2 = secondVertice[0] * (1/(1 + secondVertice[2] / this.Z_DEPTH));
+                    y2 = secondVertice[1] * (1/(1 + secondVertice[2] / this.Z_DEPTH));
+                }
+                else if (this.currentDrawingOption === DrawingOption.Parallel) {
+                    x2 = secondVertice[0];
+                    y2 = secondVertice[1];
+                }
+                else {
+                    x2 = secondVertice[0] + secondVertice[2] * Math.cos(this.OBLIQUE_ANGLE);
+                    y2 = secondVertice[1] + secondVertice[2] * Math.sin(this.OBLIQUE_ANGLE);
                 }
                 this.context.lineTo(x2,y2);
             }
@@ -241,75 +295,19 @@ export class AppComponent implements OnInit {
             //close to the start point
             this.context.lineTo(x1, y1);
             this.context.closePath();
-            this.context.fillStyle = this.COLOR;
+            this.context.fillStyle = polygon.color;
             this.context.strokeStyle = this.STROKE_COLOR;
             this.context.fill();
             this.context.stroke();
         }
     }
 
-    //rotate's degree value
-    onClickRotate() {
-
-        let degreeValue = this.currentAngle;
-
-        // if value is offset
-        degreeValue = degreeValue > 360 ? degreeValue-=360 :
-            degreeValue < -360 ? degreeValue += 360 :
-                degreeValue;
-
-        // calculate degree to rad
-        degreeValue = degreeValue / 180 * Math.PI;
-
-        // calculates next 3d points
-        for( let val of Object.values(this.vertices)) {
-
-            let x = val[0] - this.middle.x,
-                y = val[1] - this.middle.y,
-                z = val[2];
-
-            if (this.currentAxis === Axis.X) {
-
-                val[1] = (y * Math.cos(degreeValue) - z * Math.sin(degreeValue)) + this.middle.y;
-                val[2] = (y * Math.sin(degreeValue) + z * Math.cos(degreeValue));
-
-            }
-            else if (this.currentAxis === Axis.Y) {
-
-                val[0] = (x * Math.cos(degreeValue) - z * Math.sin(degreeValue)) + this.middle.x;
-                val[2] = (x * Math.sin(degreeValue) + z * Math.cos(degreeValue));
-
-            }
-            else if(this.currentAxis === Axis.Z) {
-
-                val[0] = (x * Math.cos(degreeValue) - y * Math.sin(degreeValue)) + this.middle.x;
-                val[1] = (x * Math.sin(degreeValue) + y * Math.cos(degreeValue)) + this.middle.y;
-
-            }
-            else {
-                alert("Invalid exis");}
+    private static generateRandomColor() {
+        let letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
         }
-        this.clearCanvas();
-        this.draw();
-    }
-
-    onClickScale() {
-
-        if(this.scaleValue > 10 || this.scaleValue < 0.1){
-            alert("Not a good scale value");
-        }
-        else {
-            for(let vertice of this.vertices) {
-                let x = vertice[0] - this.middle.x,
-                    y = vertice[1] - this.middle.y,
-                    z = vertice[2];
-
-                vertice[0] = (this.scaleValue * x) + this.middle.x;
-                vertice[1] = (this.scaleValue * y) + this.middle.y;
-                vertice[2] = this.scaleValue * z;
-            }
-            this.clearCanvas();
-            this.draw();
-        }
+        return color;
     }
 }
