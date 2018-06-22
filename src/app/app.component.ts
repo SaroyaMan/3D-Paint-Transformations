@@ -62,7 +62,7 @@ export class AppComponent implements OnInit {
         this.context.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
     }
 
-    // Clear canvas and reload the file
+    // Clear canvas and reload the data
     public reload() {
         this.clearCanvas();
         this.initialize();
@@ -90,22 +90,25 @@ export class AppComponent implements OnInit {
                 y = val[1] - this.middle.y,
                 z = val[2];
 
-            if (this.currentAxis === Axis.X) {
+            switch (this.currentAxis) {
+                case Axis.X:
+                    val[1] = (y * Math.cos(degree) - z * Math.sin(degree)) + this.middle.y;
+                    val[2] = (y * Math.sin(degree) + z * Math.cos(degree));
+                    break;
 
-                val[1] = (y * Math.cos(degree) - z * Math.sin(degree)) + this.middle.y;
-                val[2] = (y * Math.sin(degree) + z * Math.cos(degree));
+                case Axis.Y:
+                    val[0] = (x * Math.cos(degree) - z * Math.sin(degree)) + this.middle.x;
+                    val[2] = (x * Math.sin(degree) + z * Math.cos(degree));
+                    break;
 
-            }
-            else if (this.currentAxis === Axis.Y) {
+                case Axis.Z:
+                    val[0] = (x * Math.cos(degree) - y * Math.sin(degree)) + this.middle.x;
+                    val[1] = (x * Math.sin(degree) + y * Math.cos(degree)) + this.middle.y;
+                    break;
 
-                val[0] = (x * Math.cos(degree) - z * Math.sin(degree)) + this.middle.x;
-                val[2] = (x * Math.sin(degree) + z * Math.cos(degree));
-
-            }
-            else if(this.currentAxis === Axis.Z) {
-
-                val[0] = (x * Math.cos(degree) - y * Math.sin(degree)) + this.middle.x;
-                val[1] = (x * Math.sin(degree) + y * Math.cos(degree)) + this.middle.y;
+                default:
+                    alert("Selected axis is invalid");
+                    return;
 
             }
         }
@@ -116,7 +119,7 @@ export class AppComponent implements OnInit {
     public onClickScale() {
 
         if(this.scaleValue > 10 || this.scaleValue < 0.1){
-            alert("Invalid Scale Value");
+            alert("Invalid Scale Value. Must be 0.1 ~ 10");
         }
         else {
             for(let vertice of this.vertices) {
@@ -139,12 +142,12 @@ export class AppComponent implements OnInit {
             this.polygons = Data.polygons.map(x => Object.assign({}, x));
             this.vertices = Data.vertices.map(x => Object.assign({}, x));
 
+            // Generate a random color for each polygon
             for(let polygon of this.polygons) {
                 polygon.color = AppComponent.generateRandomColor();
             }
 
             this.calculateCenter();
-            this.clearCanvas();
             this.draw();
         }
         else {
@@ -199,33 +202,33 @@ export class AppComponent implements OnInit {
 
     // calculates normal by a given polygon parameter
     private calculateNormal(polygon) {
-        //now we need three vertices from each polygon in order to calculate each shape's Normal
+        // Calculate 3 vertices from each polygon in order to calculate each shape's Normal
         let vecA = this.calculateNormalVertice(polygon.verticeIndexes[0],polygon.verticeIndexes[1]),
             vecB = this.calculateNormalVertice(polygon.verticeIndexes[0],polygon.verticeIndexes[2]),
             vecC = this.calculateNormalVertice(polygon.verticeIndexes[1],polygon.verticeIndexes[2]);
 
-        // product a with b into normal1
-        let normal1 = {x:-1,y:-1,z:-1};
-        normal1.x = ( vecA.y*vecB.z - (vecA.z * vecB.y) );
-        normal1.y = - (vecA.x*vecB.z - (vecA.z * vecB.x));
-        normal1.z = ( vecA.x*vecB.y - ( vecA.y * vecB.x ));
+        // product vecA with vecB into firstNormal
+        let firstNormal = {x:-1,y:-1,z:-1};
+        firstNormal.x = ( vecA.y*vecB.z - (vecA.z * vecB.y) );
+        firstNormal.y = - (vecA.x*vecB.z - (vecA.z * vecB.x));
+        firstNormal.z = ( vecA.x*vecB.y - ( vecA.y * vecB.x ));
 
-        // product a with c into normal2
-        let normal2 = {x:-1,y:-1,z:-1};
-        normal2.x = ( vecA.y * vecC.z - (vecA.z * vecC.y) );
-        normal2.y = - (vecA.x * vecC.z - (vecA.z * vecC.x));
-        normal2.z = ( vecA.x * vecC.y - ( vecA.y * vecC.x ));
+        // product vecA with vecB into secondNormal
+        let secondNormal = {x:-1,y:-1,z:-1};
+        secondNormal.x = ( vecA.y * vecC.z - (vecA.z * vecC.y) );
+        secondNormal.y = - (vecA.x * vecC.z - (vecA.z * vecC.x));
+        secondNormal.z = ( vecA.x * vecC.y - ( vecA.y * vecC.x ));
 
-        // product normal1 with normal2 into normal3
-        let normal3 = {x:-1,y:-1,z:-1};
-        normal3.x = ( normal1.y * normal2.z - (normal1.z * normal2.y) );
-        normal3.y = - (normal1.x * normal2.z - (normal1.z * normal2.x));
-        normal3.z = ( normal1.x * normal2.y - ( normal1.y * normal2.x ));
+        // product firstNormal with secondNormal into thirdNormal
+        let thirdNormal = {x:-1,y:-1,z:-1};
+        thirdNormal.x = ( firstNormal.y * secondNormal.z - (firstNormal.z * secondNormal.y) );
+        thirdNormal.y = - (firstNormal.x * secondNormal.z - (firstNormal.z * secondNormal.x));
+        thirdNormal.z = ( firstNormal.x * secondNormal.y - ( firstNormal.y * secondNormal.x ));
 
         // calculates normal absolute size
-        let xPow = Math.pow(normal3.x,2);
-        let yPow = Math.pow(normal3.y,2);
-        let zPow = Math.pow(normal3.z,2);
+        let xPow = Math.pow(thirdNormal.x,2);
+        let yPow = Math.pow(thirdNormal.y,2);
+        let zPow = Math.pow(thirdNormal.z,2);
 
         return Math.sqrt(xPow + yPow + zPow);
     }
@@ -236,7 +239,7 @@ export class AppComponent implements OnInit {
         // Sorting the shapes by depth
         this.depthSorting();
 
-        // Running through Drawing polygon
+        // Running through  polygons and draw each polygon
         for(let polygon of this.polygons) {
 
             let x1, y1, x2, y2, firstVertice, secondVertice;
