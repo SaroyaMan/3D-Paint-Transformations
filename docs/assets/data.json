@@ -1,0 +1,169 @@
+[
+  {
+    "type": "Circle",
+    "positionX": 350,
+    "positionY": 370,
+    "radius": 30
+  },
+  {
+    "type": "Bezier",
+    "startX": 300,
+    "startY": 370,
+    "cp1X": 300,
+    "cp1Y": 320,
+    "cp2X": 400,
+    "cp2Y": 320,
+    "endX": 400,
+    "endY": 370
+  },
+  {
+    "type": "Circle",
+    "positionX": 650,
+    "positionY": 370,
+    "radius": 30
+  },
+  {
+    "type": "Bezier",
+    "startX": 600,
+    "startY": 370,
+    "cp1X": 600,
+    "cp1Y": 320,
+    "cp2X": 700,
+    "cp2Y": 320,
+    "endX": 700,
+    "endY": 370
+  },
+  {
+    "type": "Line",
+    "positionX1": 400,
+    "positionY1": 370,
+    "positionX2": 600,
+    "positionY2": 370
+  },
+  {
+    "type": "Line",
+    "positionX1": 150,
+    "positionY1": 370,
+    "positionX2": 300,
+    "positionY2": 370
+  },
+  {
+    "type": "Line",
+    "positionX1": 150,
+    "positionY1": 370,
+    "positionX2": 180,
+    "positionY2": 280
+  },
+  {
+    "type": "Line",
+    "positionX1": 180,
+    "positionY1": 280,
+    "positionX2": 280,
+    "positionY2": 280
+  },
+  {
+    "type": "Line",
+    "positionX1": 280,
+    "positionY1": 280,
+    "positionX2": 320,
+    "positionY2": 210
+  },
+  {
+    "type": "Line",
+    "positionX1": 320,
+    "positionY1": 210,
+    "positionX2": 520,
+    "positionY2": 210
+  },
+  {
+    "type": "Line",
+    "positionX1": 520,
+    "positionY1": 210,
+    "positionX2": 600,
+    "positionY2": 280
+  },
+  {
+    "type": "Line",
+    "positionX1": 600,
+    "positionY1": 280,
+    "positionX2": 800,
+    "positionY2": 290
+  },
+  {
+    "type": "Line",
+    "positionX1": 800,
+    "positionY1": 290,
+    "positionX2": 850,
+    "positionY2": 370
+  },
+  {
+    "type": "Line",
+    "positionX1": 850,
+    "positionY1": 370,
+    "positionX2": 700,
+    "positionY2": 370
+  },
+  {
+    "type": "Line",
+    "positionX1": 310,
+    "positionY1": 270,
+    "positionX2": 330,
+    "positionY2": 230
+  },
+  {
+    "type": "Line",
+    "positionX1": 330,
+    "positionY1": 230,
+    "positionX2": 400,
+    "positionY2": 230
+  },
+  {
+    "type": "Line",
+    "positionX1": 400,
+    "positionY1": 230,
+    "positionX2": 420,
+    "positionY2": 270
+  },
+  {
+    "type": "Line",
+    "positionX1": 420,
+    "positionY1": 270,
+    "positionX2": 400,
+    "positionY2": 230
+  },
+  {
+    "type": "Line",
+    "positionX1": 420,
+    "positionY1": 270,
+    "positionX2": 310,
+    "positionY2": 270
+  },
+  {
+    "type": "Line",
+    "positionX1": 450,
+    "positionY1": 230,
+    "positionX2": 515,
+    "positionY2": 230
+  },
+  {
+    "type": "Line",
+    "positionX1": 450,
+    "positionY1": 230,
+    "positionX2": 440,
+    "positionY2": 270
+  },
+  {
+    "type": "Line",
+    "positionX1": 550,
+    "positionY1": 270,
+    "positionX2": 515,
+    "positionY2": 230
+  },
+  {
+    "type": "Line",
+    "positionX1": 550,
+    "positionY1": 270,
+    "positionX2": 440,
+    "positionY2": 270
+  }
+]
